@@ -18,15 +18,16 @@ def plot_buffers(sqlite_file, x_range_option):
 
     df['end_address'] = df['address'] + df['max_size_per_bank']
     
-    # Sort the dataframe by address
     df = df.sort_values(by='address')
-    df = df.sort_values(by='operation_id', ascending=False)  # Flip the DataFrame
+    df = df.sort_values(by='operation_id', ascending=False)
 
     fig, ax = plt.subplots(figsize=(12, 200), dpi=60)
 
-    # Plot each buffer as a horizontal bar at its address
     for _, row in df.iterrows():
         ax.barh(row['operation_id'], row['max_size_per_bank'], left=row['address'], height=0.8, label=row['operation_name'])
+    
+    st.write(f"Operation buffers address range: {df['address'].min()} to {df['end_address'].max()}")
+    st.write(f"Operations with buffers ID range: {df['operation_id'].min()} to {df['operation_id'].max()}")
     
     ax.set_xlabel('Address')
     ax.set_ylabel('Operation ID')
@@ -34,17 +35,14 @@ def plot_buffers(sqlite_file, x_range_option):
 
     ax.grid(True, axis='x')
 
-    # Set y-axis limits
     min_op_id = df['operation_id'].min()
     max_op_id = df['operation_id'].max()
     ax.set_ylim(min_op_id - 1, max_op_id + 1)
-
-    # Reverse the y-axis
     ax.invert_yaxis()
 
     minTick = 0
     max_range = 1_500_000
-    # Adjust x-ticks based on the selected range option
+
     if x_range_option == "Half":
         max_range = 1_000_000
     elif x_range_option == "Full":
@@ -57,22 +55,17 @@ def plot_buffers(sqlite_file, x_range_option):
     ax.set_xticks(x_ticks)
     ax.set_xticklabels([f'{(x // 1000)}k' for x in x_ticks])
 
-    # Add a secondary x-axis on top with the same ticks and labels
     secax_top = ax.secondary_xaxis('top')
     secax_top.set_xticks(x_ticks)
     secax_top.set_xticklabels([f'{(x // 1000)}k' for x in x_ticks])
     secax_top.set_xlabel('Address')
 
-    # Create a secondary y-axis on the right side with the same ticks
     secax = ax.secondary_yaxis('right')
     secax.set_yticks(df['operation_id'])
     secax.set_yticklabels(df['operation_id'])
 
     st.pyplot(fig)
     
-    # Display the DataFrame for additional insight
-    st.write(f"Operation buffers address range: {df['address'].min()} to {df['end_address'].max()}")
-    st.write(f"Operations with buffers ID range: {df['operation_id'].min()} to {df['operation_id'].max()}")
     df_sorted = df.sort_values(by='operation_id', ascending=True)
     st.dataframe(df_sorted[['operation_id', 'operation_name', 'address', 'max_size_per_bank']], use_container_width=True)
 
@@ -87,7 +80,6 @@ def main():
 
     st.title("Tenstorrent L1 Utilization Graph")
 
-    # Add a selectbox to choose the x-range option
     x_range_option = st.selectbox("Select Address Range", ["Half", "Full", "Optimized"])
 
     uploaded_file = st.file_uploader("Choose a SQLite file", type="sqlite")
