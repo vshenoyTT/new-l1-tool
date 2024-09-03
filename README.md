@@ -1,1 +1,1 @@
-Visualize all L1 buffers
+Visualize all L1 buffers off the sqlite data
