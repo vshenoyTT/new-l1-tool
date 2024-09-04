@@ -16,6 +16,9 @@ def plot_buffers(sqlite_file, x_range_option):
     df = pd.read_sql_query(query, conn)
     conn.close()
 
+    # Add this line to filter out rows where the address exceeds 2,000,000
+    df = df[df['address'] <= 2_000_000]
+
     df['end_address'] = df['address'] + df['max_size_per_bank']
     
     df = df.sort_values(by='address')
